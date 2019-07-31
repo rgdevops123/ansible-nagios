@@ -1,0 +1,11 @@
+# Main Nagios Server.
+[nagios]
+nagios-server
+
+# Generic Linux Servers.
+[servers]
+nagios-client1
+
+# Inherits generic servers checks and includes HTTP check.
+[webservers]
+nagios-client2

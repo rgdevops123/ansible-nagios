@@ -1,0 +1,30 @@
+---
+# Install and setup NRPE and checks.
+- name: Install EPEL
+  yum: name=epel-release state=present
+
+- name: Install NRPE and Common Plugins
+  yum: name={{ item }} state=present
+  with_items:
+    - nrpe
+    - nagios-plugins-disk
+    - nagios-plugins-load
+    - nagios-plugins-nrpe
+    - nagios-plugins-procs
+    - nagios-plugins-swap
+    - nagios-plugins-tcp
+    - nagios-plugins-uptime
+    - nagios-plugins-users
+
+- name: Setup NRPE client configuration
+  template:
+    src=nrpe.cfg.j2
+    dest=/etc/nagios/nrpe.cfg
+
+- name: Start NRPE service
+  command: systemctl restart nrpe.service
+  ignore_errors: true
+
+- name: Set NRPE to start on boot
+  command: systemctl enable nrpe.service
+  ignore_errors: true
