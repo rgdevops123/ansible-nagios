@@ -7,11 +7,11 @@
 - Creates a read-only user Username: ```guest``` & Password: ```guest```.
 
 ## Before Install
-Use DNS Server or update /etc/hosts for all servers
-Update the the variables in vars/main.yml
+- Use DNS Server or update /etc/hosts for all servers
+- Update the the variables in vars/main.yml
 
 ### Install Nagios Server and Clients.
-Run the playbook.
+- Run the playbook.
 
 ```
 ansible-playbook -i hosts nagios.yml
