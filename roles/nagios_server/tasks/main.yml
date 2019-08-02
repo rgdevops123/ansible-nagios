@@ -1,8 +1,8 @@
 ---
-- name: Install EPEL
+- name: Install EPEL.
   yum: name=epel-release state=present
 
-- name: Install HTTPD and OpenSSL
+- name: Install HTTPD and OpenSSL.
   yum:
     name:
       - httpd
@@ -13,10 +13,10 @@
       - openssl-libs
     state: present
 
-- name: Setup nagios SSL HTTPD vhost
+- name: Setup Nagios SSL HTTPD vhost.
   template: src=nagios.conf.j2 dest=/etc/httpd/conf.d/nagios.conf
 
-- name: Install nagios packages and common plugins
+- name: Install Nagios packages and common plugins.
   yum:
     name:
       - nagios
@@ -35,35 +35,35 @@
       - nagios-plugins-users
     state: present
 
-- name: Check nagios Users
+- name: Check Nagios Users.
   stat: path=/etc/nagios/passwd
   ignore_errors: true
   register: nagios_user_pwfile_exists
 
-- name: Create empty password file
+- name: Create empty password file.
   command: touch /etc/nagios/passwd
   args:
     creates: /etc/nagios/passwd
   when: nagios_user_pwfile_exists != 0
 
-- name: Create nagios admin user
+- name: Create Nagios Admin User.
   command: htpasswd -b -c /etc/nagios/passwd {{nagios_username}} {{nagios_password}}
   ignore_errors: true
   when: nagios_user_pwfile_exists != 0
 
-- name: Create nagios guest user
+- name: Create Nagios Guest User.
   command: htpasswd -b /etc/nagios/passwd {{nagios_ro_username}} {{nagios_ro_password}}
   when: nagios_create_guest_user|bool
 
-- name: Configure nagios main configuration
+- name: Configure Nagios Main Configuration file.
   template: src=nagios.cfg.j2 dest=/etc/nagios/nagios.cfg
 
-- name: Generate the nagios conf.d directory
+- name: Create the Nagios conf.d Directory.
   file:
     path: /etc/nagios/conf.d
     state: directory
 
-- name: Generate the nagios monitoring templates
+- name: Generate the Nagios monitoring templates.
   template: src={{ item + ".j2" }}
             dest=/etc/nagios/conf.d/{{ item }}
   with_items:
@@ -72,14 +72,14 @@
     - webservers.cfg
   register: nagios_needs_restart
 
-- name: Generate the nagios contact template and localhost config
+- name: Generate the Nagios contact template and localhost config.
   template: src={{ item + ".j2" }}
             dest=/etc/nagios/objects/{{ item }}
   with_items:
     - contacts.cfg
     - localhost.cfg
 
-- name: Generate the nagios user CGI template
+- name: Generate the Nagios user CGI template.
   template: src={{ item + ".j2" }}
             dest=/etc/nagios/{{ item }}
   with_items:
@@ -87,7 +87,7 @@
     - services.cfg
 
 # https://bugzilla.redhat.com/show_bug.cgi?id=1291718
-- name: Create nagios socket tmp files
+- name: Create Nagios socket tmp files.
   file:
     path=/var/log/nagios/rw
     state=directory
@@ -96,8 +96,7 @@
     mode=0777
     seuser=system_u
 
-# Nagios upgrade to 4.2.4 requires this
-- name: Create nagios results directory
+- name: Create Nagios results directory.
   file:
     path=/var/log/nagios/spool/checkresults
     state=directory
@@ -106,35 +105,35 @@
     mode=0755
     seuser=system_u
 
-# Add lineinfile fix for faulty, shipped nagios systemd service
-- name: Check/fix systemd service file
+# Add lineinfile fix for faulty, shipped nagios systemd service.
+- name: Check/fix systemd service file.
   lineinfile: dest=/usr/lib/systemd/system/nagios.service \
           regexp="^ExecStopPost=" \
           line="ExecStopPost=/usr/bin/rm -f /var/spool/nagios/cmd/nagios.cmd /var/log/nagios/rw/nagios.qh"
   register: systemd_nagios_changed
 
-# Change listening port for http to match vars/main.yml
-- name: Set HTTP Listen Port
+# Change listening port for http to match vars/main.yml.
+- name: Set HTTP Listen Port.
   lineinfile: dest=/etc/httpd/conf/httpd.conf regexp="^Listen" line="Listen {{nagios_http_port}}"
 
-- name: Reload Systemd
+- name: Reload Systemd.
   command: systemctl daemon-reload
   when: systemd_nagios_changed !=0
 
-- name: Start nagios service
+- name: Start nagios service.
   command: systemctl restart nagios.service
   when: nagios_needs_restart != 0
 
-- name: Set nagios to start on boot
+- name: Set nagios to start on boot.
   command: systemctl enable nagios.service
   ignore_errors: true
 
-- name: Setup HTTPD service
+- name: Setup HTTPD service.
   command: systemctl enable httpd.service
   ignore_errors: true
   when: nagios_needs_restart !=0
 
-- name: Restart HTTPD service
+- name: Restart HTTPD service.
   command: systemctl restart httpd.service
   ignore_errors: true
   when: nagios_needs_restart !=0
